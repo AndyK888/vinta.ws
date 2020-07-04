@@ -1,6 +1,47 @@
 apiVersion: v1
 kind: ConfigMap
 metadata:
+  name: my-blog-wp-config
+data:
+  wp-config.php: |
+    <?php
+    define('DB_NAME', 'xxx');
+    define('DB_USER', 'xxx');
+    define('DB_PASSWORD', 'xxx');
+    define('DB_HOST', 'xxx');
+    define('DB_CHARSET', 'utf8mb4');
+    define('DB_COLLATE', '');
+
+    define('AUTH_KEY',         'xxx');
+    define('SECURE_AUTH_KEY',  'xxx');
+    define('LOGGED_IN_KEY',    'xxx');
+    define('NONCE_KEY',        'xxx');
+    define('AUTH_SALT',        'xxx');
+    define('SECURE_AUTH_SALT', 'xxx');
+    define('LOGGED_IN_SALT',   'xxx');
+    define('NONCE_SALT',       'xxx');
+
+    $table_prefix = 'wp_';
+
+    define('WP_DEBUG', false);
+
+    if (isset($_SERVER['HTTP_X_FORWARDED_PROTO']) && $_SERVER['HTTP_X_FORWARDED_PROTO'] === 'https') {
+      $_SERVER['HTTPS'] = 'on';
+    }
+
+    // WORDPRESS_CONFIG_EXTRA
+    define('AUTOSAVE_INTERVAL', 86400);
+    define('WP_POST_REVISIONS', false);
+
+    if (!defined('ABSPATH')) {
+      define('ABSPATH', dirname( __FILE__ ) . '/');
+    }
+
+    require_once(ABSPATH . 'wp-settings.php');
+---
+apiVersion: v1
+kind: ConfigMap
+metadata:
   name: nginx-wp-includes
 data:
   security.conf: |
@@ -20,7 +61,7 @@ data:
 apiVersion: v1
 kind: ConfigMap
 metadata:
-  name: my-blog-nginx-site
+  name: cloud-wp-nginx-site
 data:
   default.conf: |
     server {
@@ -40,45 +81,6 @@ data:
         rewrite ^/sitemap(-+([a-zA-Z0-9_-]+))?\.xml\.gz$ "/blog/index.php?xml_sitemap=params=$2;zip=true" last;
         rewrite ^/sitemap(-+([a-zA-Z0-9_-]+))?\.html$ "/blog/index.php?xml_sitemap=params=$2;html=true" last;
         rewrite ^/sitemap(-+([a-zA-Z0-9_-]+))?\.html.gz$ "/blog/index.php?xml_sitemap=params=$2;html=true;zip=true" last;
-      }
-
-      location ~ [^/]\.php(/|$) {
-        try_files $uri =404;
-        fastcgi_split_path_info ^(.+?\.php)(/.*)$;
-        include fastcgi_params;
-        fastcgi_param HTTP_PROXY "";
-        fastcgi_pass unix:/var/run/php-fpm.sock;
-        fastcgi_index index.php;
-        fastcgi_buffers 8 16k;
-        fastcgi_buffer_size 32k;
-        fastcgi_param SCRIPT_FILENAME $document_root$fastcgi_script_name;
-        fastcgi_param PATH_INFO $fastcgi_path_info;
-      }
-    }
----
-apiVersion: v1
-kind: ConfigMap
-metadata:
-  name: code-blog-nginx-site
-data:
-  default.conf: |
-    server {
-      listen 80;
-      root /var/www/html;
-      index index.php;
-
-      if ($http_user_agent ~* (GoogleHC)) { # https://cloud.google.com/kubernetes-engine/docs/concepts/ingress#health_checks
-        return 200;
-      }
-
-      include /etc/nginx/includes/security.conf;
-
-      location /code/ {
-        try_files $uri $uri/ /code/index.php?q=$uri&$args;
-        rewrite ^/sitemap(-+([a-zA-Z0-9_-]+))?\.xml$ "/code/index.php?xml_sitemap=params=$2" last;
-        rewrite ^/sitemap(-+([a-zA-Z0-9_-]+))?\.xml\.gz$ "/code/index.php?xml_sitemap=params=$2;zip=true" last;
-        rewrite ^/sitemap(-+([a-zA-Z0-9_-]+))?\.html$ "/code/index.php?xml_sitemap=params=$2;html=true" last;
-        rewrite ^/sitemap(-+([a-zA-Z0-9_-]+))?\.html.gz$ "/code/index.php?xml_sitemap=params=$2;html=true;zip=true" last;
       }
 
       location ~ [^/]\.php(/|$) {

@@ -7,6 +7,6 @@ spec:
     app: frontend
   type: NodePort
   ports:
-  - name: http
-    port: 80
-    targetPort: http
+    - name: http
+      port: 80
+      targetPort: http

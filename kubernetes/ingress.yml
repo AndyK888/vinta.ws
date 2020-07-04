@@ -6,17 +6,10 @@ metadata:
     kubernetes.io/ingress.class: "gce" # https://github.com/kubernetes/ingress-gce
 spec:
   rules:
-  - host: vinta.ws
-    http:
-      paths:
-      - path: /blog/*
-        backend:
-          serviceName: my-blog
-          servicePort: http
-      - path: /code/*
-        backend:
-          serviceName: code-blog
-          servicePort: http
-      - backend:
-          serviceName: frontend
-          servicePort: http
+    - host: test.skates.guru
+      http:
+        paths:
+          - path: /*
+            backend:
+              serviceName: cloud-wp
+              servicePort: http

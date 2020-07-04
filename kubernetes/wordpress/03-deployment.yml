@@ -1,191 +1,95 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: my-blog
+  name: cloud-wp
 spec:
   replicas: 2
   selector:
     matchLabels:
-      app: my-blog
+      app: cloud-wp
   template:
     metadata:
       labels:
-        app: my-blog
+        app: cloud-wp
     spec:
       affinity:
         podAntiAffinity:
           preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100 # prevent the scheduler from locating two pods on the same node
-            podAffinityTerm:
-              topologyKey: kubernetes.io/hostname
-              labelSelector:
-                matchExpressions:
-                  - key: "app"
-                    operator: In
-                    values:
-                    - my-blog
+            - weight: 100 # prevent the scheduler from locating two pods on the same node
+              podAffinityTerm:
+                topologyKey: kubernetes.io/hostname
+                labelSelector:
+                  matchExpressions:
+                    - key: "app"
+                      operator: In
+                      values:
+                        - cloud-wp
       volumes:
-      - name: php-fpm-unix-socket
-        emptyDir:
-          medium: Memory
-      - name: wordpress-root
-        emptyDir:
-          medium: Memory
-      - name: my-blog-wp-config
-        configMap:
-          name: my-blog-wp-config
-      - name: nginx-global-config
-        configMap:
-          name: nginx-global-config
-      - name: nginx-wp-includes
-        configMap:
-          name: nginx-wp-includes
-      - name: my-blog-nginx-site
-        configMap:
-          name: my-blog-nginx-site
-      containers:
-      - name: wordpress
-        image: asia.gcr.io/vinta-254817/my-blog:0ae599a # https://hub.docker.com/_/wordpress
-        workingDir: /var/www/html/blog # HACK: specify the WordPress installation path
-        volumeMounts:
         - name: php-fpm-unix-socket
-          mountPath: /var/run
+          emptyDir:
+            medium: Memory
         - name: wordpress-root
-          mountPath: /var/www/html/blog
-        - name: my-blog-wp-config
-          mountPath: /var/www/html/blog/wp-config.php
-          subPath: wp-config.php
-          readOnly: true
-        resources:
-          requests:
-            cpu: 100m
-            memory: 128Mi
-          limits:
-            memory: 512Mi
-      - name: nginx
-        image: nginx:1.17.5-alpine # https://hub.docker.com/_/nginx
-        volumeMounts:
-        - name: php-fpm-unix-socket
-          mountPath: /var/run
-        - name: wordpress-root
-          mountPath: /var/www/html/blog
-          readOnly: true
+          emptyDir:
+            medium: Memory
+        - name: cloud-wp-wp-config
+          configMap:
+            name: cloud-wp-wp-config
         - name: nginx-global-config
-          mountPath: /etc/nginx/nginx.conf
-          subPath: nginx.conf
-          readOnly: true
+          configMap:
+            name: nginx-global-config
         - name: nginx-wp-includes
-          mountPath: /etc/nginx/includes/
-          readOnly: true
-        - name: my-blog-nginx-site
-          mountPath: /etc/nginx/conf.d/
-          readOnly: true
-        ports:
-        - name: http
-          containerPort: 80
-        # readinessProbe:
-        #   httpGet:
-        #     path: /blog/wp-admin/install.php
-        #     port: http
-        resources:
-          requests:
-            cpu: 50m
-            memory: 100Mi
-          limits:
-            memory: 100Mi
----
-apiVersion: apps/v1
-kind: Deployment
-metadata:
-  name: code-blog
-spec:
-  replicas: 2
-  selector:
-    matchLabels:
-      app: code-blog
-  template:
-    metadata:
-      labels:
-        app: code-blog
-    spec:
-      affinity:
-        podAntiAffinity:
-          preferredDuringSchedulingIgnoredDuringExecution:
-          - weight: 100 # prevent the scheduler from locating two pods on the same node
-            podAffinityTerm:
-              topologyKey: kubernetes.io/hostname
-              labelSelector:
-                matchExpressions:
-                  - key: "app"
-                    operator: In
-                    values:
-                    - code-blog
-      volumes:
-      - name: php-fpm-unix-socket
-        emptyDir:
-          medium: Memory
-      - name: wordpress-root
-        emptyDir:
-          medium: Memory
-      - name: code-blog-wp-config
-        configMap:
-          name: code-blog-wp-config
-      - name: nginx-global-config
-        configMap:
-          name: nginx-global-config
-      - name: nginx-wp-includes
-        configMap:
-          name: nginx-wp-includes
-      - name: code-blog-nginx-site
-        configMap:
-          name: code-blog-nginx-site
+          configMap:
+            name: nginx-wp-includes
+        - name: cloud-wp-nginx-site
+          configMap:
+            name: cloud-wp-nginx-site
       containers:
-      - name: wordpress
-        image: asia.gcr.io/vinta-254817/code-blog:0ae599a # https://hub.docker.com/_/wordpress
-        workingDir: /var/www/html/code # HACK: specify the WordPress installation path
-        volumeMounts:
-        - name: php-fpm-unix-socket
-          mountPath: /var/run
-        - name: wordpress-root
-          mountPath: /var/www/html/code
-        - name: code-blog-wp-config
-          mountPath: /var/www/html/code/wp-config.php
-          subPath: wp-config.php
-          readOnly: true
-        resources:
-          requests:
-            cpu: 100m
-            memory: 128Mi
-          limits:
-            memory: 512Mi
-      - name: nginx
-        image: nginx:1.17.5-alpine # https://hub.docker.com/_/nginx
-        volumeMounts:
-        - name: php-fpm-unix-socket
-          mountPath: /var/run
-        - name: wordpress-root
-          mountPath: /var/www/html/code
-          readOnly: true
-        - name: nginx-global-config
-          mountPath: /etc/nginx/nginx.conf
-          subPath: nginx.conf
-          readOnly: true
-        - name: nginx-wp-includes
-          mountPath: /etc/nginx/includes/
-          readOnly: true
-        - name: code-blog-nginx-site
-          mountPath: /etc/nginx/conf.d/
-          readOnly: true
-        ports:
-        - name: http
-          containerPort: 80
-        # readinessProbe:
-        #   httpGet:
-        #     path: /code/wp-admin/install.php
-        #     port: http
-        resources:
-          requests:
-            cpu: 50m
-            memory: 100Mi
-          limits:
-            memory: 100Mi
+        - name: wordpress
+          image: gcr.io/dotted-byway-282020/cloud-wp:stage1 # https://hub.docker.com/_/wordpress
+          workingDir: /var/www/html/blog # HACK: specify the WordPress installation path
+          volumeMounts:
+            - name: php-fpm-unix-socket
+              mountPath: /var/run
+            - name: wordpress-root
+              mountPath: /var/www/html/blog
+            - name: cloud-wp-wp-config
+              mountPath: /var/www/html/blog/wp-config.php
+              subPath: wp-config.php
+              readOnly: true
+          resources:
+            requests:
+              cpu: 100m
+              memory: 128Mi
+            limits:
+              memory: 512Mi
+        - name: nginx
+          image: nginx:latest # https://hub.docker.com/_/nginx
+          volumeMounts:
+            - name: php-fpm-unix-socket
+              mountPath: /var/run
+            - name: wordpress-root
+              mountPath: /var/www/html/blog
+              readOnly: true
+            - name: nginx-global-config
+              mountPath: /etc/nginx/nginx.conf
+              subPath: nginx.conf
+              readOnly: true
+            - name: nginx-wp-includes
+              mountPath: /etc/nginx/includes/
+              readOnly: true
+            - name: cloud-wp-nginx-site
+              mountPath: /etc/nginx/conf.d/
+              readOnly: true
+          ports:
+            - name: http
+              containerPort: 80
+          # readinessProbe:
+          #   httpGet:
+          #     path: /blog/wp-admin/install.php
+          #     port: http
+          resources:
+            requests:
+              cpu: 50m
+              memory: 100Mi
+            limits:
+              memory: 100Mi

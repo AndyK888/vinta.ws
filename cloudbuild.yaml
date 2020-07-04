@@ -1,11 +1,11 @@
 #SG
 substitutions:
-  _MY_BLOG_IMAGE_NAME: my-blog
-  _CODE_BLOG_IMAGE_NAME: code-blog
-  _STATIC_FILES_IMAGE_NAME: static-files
+  _MY_BLOG_IMAGE_NAME: cloud-wp
+  # _CODE_BLOG_IMAGE_NAME: code-blog
+  # _STATIC_FILES_IMAGE_NAME: static-files
 steps:
   # my blog
-  - id: my-blog-cache-image
+  - id: cloud-wp-cache-image
     name: gcr.io/cloud-builders/docker
     entrypoint: "/bin/bash"
     args:
@@ -13,7 +13,7 @@ steps:
       - |
         docker pull asia.gcr.io/$PROJECT_ID/$_MY_BLOG_IMAGE_NAME:$BRANCH_NAME || exit 0
     waitFor: ["-"]
-  - id: my-blog-build-image
+  - id: cloud-wp-build-image
     name: gcr.io/cloud-builders/docker
     args:
       [
@@ -22,58 +22,10 @@ steps:
         "asia.gcr.io/$PROJECT_ID/$_MY_BLOG_IMAGE_NAME:$BRANCH_NAME",
         "-t",
         "asia.gcr.io/$PROJECT_ID/$_MY_BLOG_IMAGE_NAME:$SHORT_SHA",
-        "docker/my-blog/",
+        "docker/cloud-wp/",
       ]
-    waitFor: ["my-blog-cache-image"]
-
-  # code blog
-  - id: code-blog-cache-image
-    name: gcr.io/cloud-builders/docker
-    entrypoint: "/bin/bash"
-    args:
-      - "-c"
-      - |
-        docker pull asia.gcr.io/$PROJECT_ID/$_CODE_BLOG_IMAGE_NAME:$BRANCH_NAME || exit 0
-    waitFor: ["-"]
-  - id: code-blog-build-image
-    name: gcr.io/cloud-builders/docker
-    args:
-      [
-        "build",
-        "--cache-from",
-        "asia.gcr.io/$PROJECT_ID/$_CODE_BLOG_IMAGE_NAME:$BRANCH_NAME",
-        "-t",
-        "asia.gcr.io/$PROJECT_ID/$_CODE_BLOG_IMAGE_NAME:$BRANCH_NAME",
-        "-t",
-        "asia.gcr.io/$PROJECT_ID/$_CODE_BLOG_IMAGE_NAME:$SHORT_SHA",
-        "docker/code-blog/",
-      ]
-    waitFor: ["code-blog-cache-image"]
-
-  # static files
-  - id: static-files-cache-image
-    name: gcr.io/cloud-builders/docker
-    entrypoint: "/bin/bash"
-    args:
-      - "-c"
-      - |
-        docker pull asia.gcr.io/$PROJECT_ID/$_STATIC_FILES_IMAGE_NAME:$BRANCH_NAME || exit 0
-    waitFor: ["-"]
-  - id: static-files-build-image
-    name: gcr.io/cloud-builders/docker
-    args:
-      [
-        "build",
-        "-t",
-        "asia.gcr.io/$PROJECT_ID/$_STATIC_FILES_IMAGE_NAME:$BRANCH_NAME",
-        "-t",
-        "asia.gcr.io/$PROJECT_ID/$_STATIC_FILES_IMAGE_NAME:$SHORT_SHA",
-        "docker/static-files/",
-      ]
-    waitFor: ["static-files-cache-image"]
+    waitFor: ["cloud-wp-cache-image"]
 
 # https://cloud.google.com/cloud-build/docs/configuring-builds/store-images-artifacts
 images:
   - asia.gcr.io/$PROJECT_ID/$_MY_BLOG_IMAGE_NAME:$SHORT_SHA
-  - asia.gcr.io/$PROJECT_ID/$_CODE_BLOG_IMAGE_NAME:$SHORT_SHA
-  - asia.gcr.io/$PROJECT_ID/$_STATIC_FILES_IMAGE_NAME:$SHORT_SHA
