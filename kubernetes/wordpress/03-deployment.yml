@@ -45,7 +45,7 @@ spec:
             name: cloud-wp-nginx-site
       containers:
         - name: wordpress
-          image: gcr.io/dotted-byway-282020/cloud-wp:stage1 # https://hub.docker.com/_/wordpress
+          image: wordpress:latest # https://hub.docker.com/_/wordpress
           workingDir: /var/www/html/blog # HACK: specify the WordPress installation path
           volumeMounts:
             - name: php-fpm-unix-socket

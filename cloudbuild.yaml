@@ -1,4 +1,5 @@
 #SG
+apiVersion: v1
 substitutions:
   _MY_BLOG_IMAGE_NAME: cloud-wp
   # _CODE_BLOG_IMAGE_NAME: code-blog
